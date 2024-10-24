@@ -1561,7 +1561,7 @@ export class QuestionPanelDynamicModel extends Question
       const nextIndex = visIndex >= pnlCount ? pnlCount - 1 : visIndex;
       let id = pnlCount === 0 ? this.addButtonId : (nextIndex > -1 ? this.getPanelRemoveButtonId(this.visiblePanels[nextIndex]) : "");
       if(!!id) {
-        SurveyElement.FocusElement(id, true);
+        SurveyElement.FocusElement(id, true, this.survey?.rootElement);
       }
     };
     if (this.isRequireConfirmOnDelete(value)) {
@@ -1787,7 +1787,6 @@ export class QuestionPanelDynamicModel extends Question
     const loc = this.getLocalizableString("noEntriesText");
     if (!loc) return;
     loc.localizationName = (this.isReadOnly || !this.allowAddPanel) ? "noEntriesReadonlyText" : "noEntriesText";
-    loc.strChanged();
   }
   public onSurveyLoad(): void {
     this.template.readOnly = this.isReadOnly;

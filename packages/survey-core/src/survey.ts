@@ -58,7 +58,7 @@ import {
   TriggerExecutedEvent, CompletingEvent, CompleteEvent, ShowingPreviewEvent, NavigateToUrlEvent, CurrentPageChangingEvent, CurrentPageChangedEvent,
   ValueChangingEvent, ValueChangedEvent, VariableChangedEvent, QuestionVisibleChangedEvent, PageVisibleChangedEvent, PanelVisibleChangedEvent, QuestionCreatedEvent,
   QuestionAddedEvent, QuestionRemovedEvent, PanelAddedEvent, PanelRemovedEvent, PageAddedEvent, ValidateQuestionEvent, SettingQuestionErrorsEvent, ValidatePanelEvent,
-  ErrorCustomTextEvent, ValidatedErrorsOnCurrentPageEvent, ProcessHtmlEvent, GetQuestionTitleEvent, GetTitleTagNameEvent, GetQuestionNoEvent, ProgressTextEvent,
+  ErrorCustomTextEvent, ValidatedErrorsOnCurrentPageEvent, ProcessHtmlEvent, GetQuestionTitleEvent, GetTitleTagNameEvent, GetQuestionNumberEvent, GetPageNumberEvent, ProgressTextEvent,
   TextMarkdownEvent, TextRenderAsEvent, SendResultEvent, GetResultEvent, UploadFilesEvent, DownloadFileEvent, ClearFilesEvent, LoadChoicesFromServerEvent,
   ProcessTextValueEvent, UpdateQuestionCssClassesEvent, UpdatePanelCssClassesEvent, UpdatePageCssClassesEvent, UpdateChoiceItemCssEvent, AfterRenderSurveyEvent,
   AfterRenderHeaderEvent, AfterRenderPageEvent, AfterRenderQuestionEvent, AfterRenderQuestionInputEvent, AfterRenderPanelEvent, FocusInQuestionEvent, FocusInPanelEvent,
@@ -399,7 +399,7 @@ export class SurveyModel extends SurveyElementCore
    *
    * For information on event handler parameters, refer to descriptions within the interface.
    *
-   * If you want to modify question numbers, handle the [`onGetQuestionNo`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#onGetQuestionNo) event.
+   * If you want to modify question numbers, handle the [`onGetQuestionNumber`](https://surveyjs.io/form-library/documentation/api-reference/survey-data-model#onGetQuestionNumber) event.
    * @see requiredText
    */
   public onGetQuestionTitle: EventBase<SurveyModel, GetQuestionTitleEvent> = this.addEvent<SurveyModel, GetQuestionTitleEvent>();
@@ -412,7 +412,7 @@ export class SurveyModel extends SurveyElementCore
    *
    * [View Demo](https://surveyjs.io/form-library/examples/survey-titletagnames/ (linkStyle))
    * @see onGetQuestionTitle
-   * @see onGetQuestionNo
+   * @see onGetQuestionNumber
    */
   public onGetTitleTagName: EventBase<SurveyModel, GetTitleTagNameEvent> = this.addEvent<SurveyModel, GetTitleTagNameEvent>();
   /**
@@ -424,7 +424,9 @@ export class SurveyModel extends SurveyElementCore
    * @see onGetQuestionTitle
    * @see questionStartIndex
    */
-  public onGetQuestionNo: EventBase<SurveyModel, GetQuestionNoEvent> = this.addEvent<SurveyModel, GetQuestionNoEvent>();
+  public onGetQuestionNumber: EventBase<SurveyModel, GetQuestionNumberEvent> = this.addEvent<SurveyModel, GetQuestionNumberEvent>();
+  public onGetQuestionNo: EventBase<SurveyModel, GetQuestionNumberEvent> = this.onGetQuestionNumber;
+  public onGetPageNumber: EventBase<SurveyModel, GetPageNumberEvent> = this.addEvent<SurveyModel, GetPageNumberEvent>();
   /**
    * An event that is raised before the survey displays progress text. Handle this event to change the progress text in code.
    * @see showProgressBar
@@ -945,7 +947,7 @@ export class SurveyModel extends SurveyElementCore
       ["showPrevButton", "showCompleteButton"],
       () => { this.updateButtonsVisibility(); });
 
-    this.onGetQuestionNo.onCallbacksChanged = () => {
+    this.onGetQuestionNumber.onCallbacksChanged = () => {
       this.resetVisibleIndexes();
     };
     this.onProgressText.onCallbacksChanged = () => {
@@ -2665,9 +2667,15 @@ export class SurveyModel extends SurveyElementCore
     return options.title;
   }
   getUpdatedQuestionNo(question: Question, no: string): string {
-    if (this.onGetQuestionNo.isEmpty) return no;
-    const options: GetQuestionNoEvent = { question: question, no: no };
-    this.onGetQuestionNo.fire(this, options);
+    if (this.onGetQuestionNumber.isEmpty) return no;
+    const options: GetQuestionNumberEvent = { question: question, no: no };
+    this.onGetQuestionNumber.fire(this, options);
+    return options.no;
+  }
+  getUpdatedPageNo(page: PageModel, no: string): string {
+    if (this.onGetPageNumber.isEmpty) return no;
+    const options: GetPageNumberEvent = { page: page, no: no };
+    this.onGetPageNumber.fire(this, options);
     return options.no;
   }
   /**
@@ -6830,26 +6838,20 @@ export class SurveyModel extends SurveyElementCore
   questionCreated(question: Question): any {
     this.onQuestionCreated.fire(this, { question: question });
   }
-  questionAdded(
-    question: Question,
-    index: number,
-    parentPanel: any,
-    rootPanel: any
-  ) {
+  questionAdded(question: Question, index: number, parentPanel: any, rootPanel: any): void {
     if (!question.name) {
-      question.name = this.generateNewName(
-        this.getAllQuestions(false, true),
-        "question"
-      );
+      question.name = this.generateNewName(this.getAllQuestions(false, true), "question");
     }
     if (!!(<Question>question).page) {
       this.questionHashesAdded(<Question>question);
     }
-    if (!this.currentPage) {
-      this.updateCurrentPage();
+    if(!this.isLoadingFromJson) {
+      if (!this.currentPage) {
+        this.updateCurrentPage();
+      }
+      this.updateVisibleIndexes();
+      this.setCalculatedWidthModeUpdater();
     }
-    this.updateVisibleIndexes();
-    this.setCalculatedWidthModeUpdater();
     if (this.canFireAddElement()) {
       this.onQuestionAdded.fire(this, {
         question: question,
@@ -7236,13 +7238,14 @@ export class SurveyModel extends SurveyElementCore
     this.setPropertyValue("widthMode", val);
   }
   private calculatedWidthModeUpdater: ComputedUpdater;
-  public setCalculatedWidthModeUpdater() {
+  public setCalculatedWidthModeUpdater(): void {
+    if(this.isLoadingFromJson) return;
     if (this.calculatedWidthModeUpdater) this.calculatedWidthModeUpdater.dispose();
     this.calculatedWidthModeUpdater = new ComputedUpdater(() => this.calculateWidthMode());
     this.calculatedWidthMode = <any>this.calculatedWidthModeUpdater;
   }
   @property() calculatedWidthMode: string;
-  public calculateWidthMode() {
+  public calculateWidthMode(): string {
     if (this.widthMode == "auto") {
       let isResponsive = false;
       this.pages.forEach((page) => {

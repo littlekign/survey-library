@@ -3510,6 +3510,37 @@ QUnit.test("question.no and survey.questionStartIndex", function (assert) {
   });
   assert.equal(question.no, "a.b.2)", "use event");
 });
+QUnit.test("survey.onGetPageNumber event", function (assert) {
+  const survey = new SurveyModel();
+  survey.showPageNumbers = true;
+  survey.onGetPageNumber.add((sender, options) => {
+    if(options.page.isStartPage) {
+      options.no = "";
+    } else {
+      options.no = (survey.pages.indexOf(options.page) + 1) + "-";
+    }
+  });
+  survey.fromJSON({
+    firstPageIsStarted: true,
+    pages: [
+      { elements: [{ type: "text", name: "q" }] },
+      { title: "Page 1", elements: [{ type: "text", name: "q1" }] },
+      { title: "Page 2", elements: [{ type: "text", name: "q2" }] },
+      { title: "Page 3", elements: [{ type: "text", name: "q3" }] },
+      { title: "Page 4", elements: [{ type: "text", name: "q4" }] }
+    ]
+  });
+  survey.start();
+  assert.equal(survey.pages[0].no, "", "pages[0], #1");
+  assert.equal(survey.pages[1].no, "2-", "pages[1], #1");
+  assert.equal(survey.pages[2].no, "3-", "pages[2], #1");
+  assert.equal(survey.pages[3].no, "4-", "pages[3], #1");
+  survey.pages[1].visible = false;
+  assert.equal(survey.pages[0].no, "", "pages[0], #2");
+  assert.equal(survey.pages[1].no, "2-", "pages[1], #2");
+  assert.equal(survey.pages[2].no, "3-", "pages[2], #2");
+  assert.equal(survey.pages[3].no, "4-", "pages[3], #2");
+});
 QUnit.test(
   "question.no/queston.visibleIndex and hideNo/hideTitle options",
   function (assert) {
@@ -20529,4 +20560,27 @@ QUnit.test("Trim key in setting the data, Bug#8586", function (assert) {
   assert.equal(survey.getQuestionByName("q2").value, "b", "q2.value");
   assert.equal(survey.getQuestionByName("q3").value, "c", "q3.value");
   assert.equal(survey.getQuestionByName("q4").value, "d", "q3.value");
+});
+
+QUnit.test("Check that focusInput works correctly with shadow dom", function (assert) {
+  const survey = new SurveyModel({
+    elements: [
+      { type: "text", name: "q1" },
+    ]
+  });
+  const root = document.createElement("div");
+  root.attachShadow({ mode: "open" });
+  const question = survey.getAllQuestions()[0];
+  survey.rootElement = document.createElement("div");
+  const input = document.createElement("input");
+  input.id = question.inputId;
+  survey.rootElement.appendChild(input);
+  root.shadowRoot?.appendChild(survey.rootElement);
+  document.body.appendChild(root);
+  document.body.focus();
+  assert.equal(document.activeElement, document.body);
+  question.focusInputElement(false);
+  assert.equal(document.activeElement, root);
+  assert.equal(root.shadowRoot?.activeElement, input);
+  root.remove();
 });
