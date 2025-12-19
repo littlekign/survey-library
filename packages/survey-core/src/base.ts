@@ -664,6 +664,8 @@ export class Base implements IObjectValueContext {
     ) {
       if (!this.isTwoValueEquals(oldValue, val)) {
         this.setArrayPropertyDirectly(name, val);
+      } else if (val === undefined && Array.isArray(oldValue)) {
+        (oldValue as any).isReset = true;
       }
     } else {
       if (val !== oldValue) {
@@ -1004,25 +1006,36 @@ export class Base implements IObjectValueContext {
     }
   }
   public getLocalizableString(name: string): LocalizableString {
-    return !!this.localizableStrings ? this.localizableStrings[name] : null;
+    const ls = this.localizableStrings;
+    return !!ls ? ls[name] : null;
   }
-  public getLocalizableStringText(
-    name: string,
-    defaultStr: string = ""
-  ): string {
-    Base.collectDependency(this, name);
-    var locStr = this.getLocalizableString(name);
-    if (!locStr) return "";
-    var res = locStr.text;
-    return res ? res : defaultStr;
+  protected getOrCreateLocStr(name: string, supportsMarkdown: boolean = false, defaultStr: boolean | string = false, onCreate?: (newLocStr: LocalizableString) => void): LocalizableString {
+    let locStr = this.getLocalizableString(name);
+    if (!locStr) {
+      locStr = this.createLocalizableString(name, undefined, supportsMarkdown, defaultStr);
+      if (onCreate) {
+        onCreate(locStr);
+      }
+    }
+    return locStr;
+  }
+  public getLocalizableStringText(name: string, defaultStr: string = ""): string {
+    return this.getLocStringText(this.getLocalizableString(name), defaultStr);
   }
   public setLocalizableStringText(name: string, value: string) {
-    let locStr = this.getLocalizableString(name);
+    this.setLocStringText(this.getLocalizableString(name), value);
+  }
+  protected getLocStringText(locStr: LocalizableString, defaultStr: string = ""): string {
+    if (!!locStr?.name) {
+      Base.collectDependency(this, locStr.name);
+    }
+    return locStr?.text || defaultStr;
+  }
+  protected setLocStringText(locStr: LocalizableString, value: string) {
     if (!locStr) return;
     let oldValue = locStr.text;
     if (oldValue != value) {
       locStr.text = value;
-      // this.propertyValueChanged(name, oldValue, value);
     }
   }
   public addUsedLocales(locales: Array<string>): void {
@@ -1266,36 +1279,36 @@ export class Base implements IObjectValueContext {
   }
   protected setArray(
     name: string,
-    src: any[],
     dest: any[],
+    src: any[],
     isItemValues: boolean,
     onPush: any
   ) {
-    var deletedItems = [].concat(src);
-    Object.getPrototypeOf(src).splice.call(src, 0, src.length);
-    if (!!dest) {
-      for (var i = 0; i < dest.length; i++) {
-        var item = dest[i];
+    var deletedItems = [].concat(dest);
+    Object.getPrototypeOf(dest).splice.call(dest, 0, dest.length);
+    if (!!src) {
+      for (var i = 0; i < src.length; i++) {
+        var item = src[i];
         if (isItemValues) {
           if (!!Base.createItemValue) {
             item = Base.createItemValue(item, this.getItemValueType());
           }
         }
-        Object.getPrototypeOf(src).push.call(src, item);
-        if (onPush) onPush(src[i]);
+        Object.getPrototypeOf(dest).push.call(dest, item);
+        if (onPush) onPush(dest[i]);
       }
-      delete (<any>src).isReset;
+      delete (<any>dest).isReset;
     } else {
-      (<any>src).isReset = true;
+      (<any>dest).isReset = true;
     }
     const arrayChanges = new ArrayChanges(
       0,
       deletedItems.length,
-      src,
+      dest,
       deletedItems
     );
-    this.propertyValueChanged(name, deletedItems, src, arrayChanges);
-    this.notifyArrayChanged(name, src, arrayChanges);
+    this.propertyValueChanged(name, deletedItems, dest, arrayChanges);
+    this.notifyArrayChanged(name, dest, arrayChanges);
   }
   protected isTwoValueEquals(
     x: any,
