@@ -99,24 +99,20 @@ export class QuestionMatrixDynamicModel extends QuestionMatrixDropdownModelBase
   constructor(name: string) {
     super(name);
     this.initialRowCount = this.getDefaultPropertyValue("rowCount");
+    this.createLocString({ name: "confirmDeleteText", translationKey: "confirmDelete" });
+    this.createLocalizableString("addRowText").onGetTextCallback = (text: string): string => {
+      return !!text ? text : this.defaultAddRowText;
+    };
+    this.createLocString({ name: "removeRowText", translationKey: "removeRow" });
+    this.createLocString({ name: "noRowsText", hasTranslation: true });
+    this.createLocString({ name: "editRowText", translationKey: "editText" });
+    this.registerPropertyChangedHandlers(["hideColumnsIfEmpty", "allowAddRows"], () => { this.updateShowTableAndAddRow(); });
+    this.registerPropertyChangedHandlers(["allowRowReorder", "isReadOnly", "lockedRowCount"], () => { this.resetRenderedTable(); });
+    this.registerPropertyChangedHandlers(["minRowCount"], () => { this.onMinRowCountChanged(); });
+    this.registerPropertyChangedHandlers(["maxRowCount"], () => { this.onMaxRowCountChanged(); });
     this.dragOrClickHelper = new DragOrClickHelper(this.startDragMatrixRow);
   }
-  protected onPropertyValueChanged(name: string, oldValue: any, newValue: any): void {
-    super.onPropertyValueChanged(name, oldValue, newValue);
-    if (name === "hideColumnsIfEmpty" || name === "allowAddRows") {
-      this.updateShowTableAndAddRow();
-    }
-    const resetTableProps = ["allowRowReorder", "isReadOnly", "lockedRowCount"];
-    if (resetTableProps.indexOf(name) > -1) {
-      this.resetRenderedTable();
-    }
-    if (name === "minRowCount") {
-      this.onMinRowCountChanged();
-    }
-    if (name === "maxRowCount") {
-      this.onMaxRowCountChanged();
-    }
-  }
+
   public dragDropMatrixRows: DragDropMatrixRows;
   public setSurveyImpl(value: ISurveyImpl, isLight?: boolean): void {
     super.setSurveyImpl(value, isLight);
@@ -823,7 +819,7 @@ export class QuestionMatrixDynamicModel extends QuestionMatrixDropdownModelBase
     this.visibleRows.forEach((row) => {
       const locText = new LocalizableString(new MatrixSingleInputLocOwner(this, row), true, undefined, this.getSingleInputTitleTemplate());
       locText.setJson(this.locSingleInputTitleTemplate.getJson());
-      const bntEdit = new Action({ locTitle: this.locEditRowText, action: () => { this.singleInputEditRow(row); } });
+      const bntEdit = new Action({ locTitle: this.getLocalizableString("editRowText"), action: () => { this.singleInputEditRow(row); } });
       const btnRemove = canRemoveRows && this.canRemoveRow(row) ?
         new Action({ locTitle: this.locRemoveRowText, action: () => { this.removeRowUI(row); } }) : undefined;
       items.push(new QuestionSingleInputSummaryItem(locText, bntEdit, btnRemove));
@@ -838,13 +834,13 @@ export class QuestionMatrixDynamicModel extends QuestionMatrixDropdownModelBase
    * @see confirmDelete
    */
   public get confirmDeleteText() {
-    return this.getLocStringText(this.locConfirmDeleteText);
+    return this.getLocalizableStringText("confirmDeleteText");
   }
   public set confirmDeleteText(val: string) {
-    this.setLocStringText(this.locConfirmDeleteText, val);
+    this.setLocalizableStringText("confirmDeleteText", val);
   }
   get locConfirmDeleteText() {
-    return this.getOrCreateLocStr("confirmDeleteText", false, "confirmDelete");
+    return this.getLocalizableString("confirmDeleteText");
   }
   /**
    * A caption for the Add Row button.
@@ -853,17 +849,13 @@ export class QuestionMatrixDynamicModel extends QuestionMatrixDropdownModelBase
    * @see addRowButtonLocation
    */
   public get addRowText() {
-    return this.getLocStringText(this.locAddRowText);
+    return this.getLocalizableStringText("addRowText", this.defaultAddRowText);
   }
   public set addRowText(val: string) {
-    this.setLocStringText(this.locAddRowText, val);
+    this.setLocalizableStringText("addRowText", val);
   }
   get locAddRowText() {
-    return this.getOrCreateLocStr("addRowText", false, "addRow", (locStr: LocalizableString) => {
-      locStr.onGetTextCallback = (text: string): string => {
-        return text || this.defaultAddRowText;
-      };
-    });
+    return this.getLocalizableString("addRowText");
   }
   private get defaultAddRowText(): string {
     return this.getLocalizationString(
@@ -922,29 +914,26 @@ export class QuestionMatrixDynamicModel extends QuestionMatrixDropdownModelBase
    * [View Demo](https://surveyjs.io/form-library/examples/add-expandable-details-section-under-matrix-rows/ (linkStyle))
    */
   public get removeRowText() {
-    return this.getLocStringText(this.locRemoveRowText);
+    return this.getLocalizableStringText("removeRowText");
   }
   public set removeRowText(val: string) {
-    this.setLocStringText(this.locRemoveRowText, val);
+    this.setLocalizableStringText("removeRowText", val);
   }
   get locRemoveRowText() {
-    return this.getOrCreateLocStr("removeRowText", false, "removeRow");
+    return this.getLocalizableString("removeRowText");
   }
   /**
    * A message displayed when the matrix does not contain any rows. Applies only if `hideColumnsIfEmpty` is enabled.
    * @see hideColumnsIfEmpty
    */
   public get noRowsText(): string {
-    return this.getLocStringText(this.locNoRowsText);
+    return this.getLocalizableStringText("noRowsText");
   }
   public set noRowsText(val: string) {
-    this.setLocStringText(this.locNoRowsText, val);
+    this.setLocalizableStringText("noRowsText", val);
   }
   public get locNoRowsText(): LocalizableString {
-    return this.getOrCreateLocStr("noRowsText", false, true);
-  }
-  public get locEditRowText(): LocalizableString {
-    return this.getOrCreateLocStr("editRowText", false, "editText");
+    return this.getLocalizableString("noRowsText");
   }
   /**
    * @deprecated Use the [`noRowsText`](https://surveyjs.io/form-library/documentation/api-reference/dynamic-matrix-table-question-model#noRowsText) property instead.

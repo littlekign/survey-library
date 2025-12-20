@@ -1,6 +1,6 @@
 import { JsonObjectProperty, Serializer, property } from "./jsonobject";
 import { Base, EventBase } from "./base";
-import { IAction } from "./actions/action";
+import { Action, IAction } from "./actions/action";
 import { AdaptiveActionContainer } from "./actions/adaptive-container";
 import {
   ISurveyElement,
@@ -316,29 +316,18 @@ export class SurveyElement<E = any> extends SurveyElementCore implements ISurvey
     this.createNewArray("errors");
     this.createNewArray("renderedErrors");
     this.createNewArray("titleActions");
+    this.registerPropertyChangedHandlers(["isReadOnly"], () => { this.onReadOnlyChanged(); });
+    this.registerPropertyChangedHandlers(["errors"], () => { this.updateVisibleErrors(); });
+    this.registerPropertyChangedHandlers(["isSingleInRow"], () => { this.updateElementCss(false); });
+    this.registerPropertyChangedHandlers(["minWidth", "maxWidth", "renderWidth", "allowRootStyle", "parent"], () => { this.updateRootStyle(); });
+    this.registerPropertyChangedHandlers(["effectiveColSpan"], (val: number) => { this.colSpan = val; });
   }
-  protected onPropertyValueChanged(name: string, oldValue: any, newValue: any): void {
+  protected onPropertyValueChanged(name: string, oldValue: any, newValue: any) {
     super.onPropertyValueChanged(name, oldValue, newValue);
-    const updateRootStyleProps = ["minWidth", "maxWidth", "renderWidth", "allowRootStyle", "parent"];
-    if (updateRootStyleProps.indexOf(name) > -1) {
-      this.updateRootStyle();
-    }
     if (name === "state") {
       this.updateElementCss(false);
       this.notifyStateChanged(oldValue);
       if (this.stateChangedCallback)this.stateChangedCallback();
-    }
-    if (name === "isReadOnly") {
-      this.onReadOnlyChanged();
-    }
-    if (name === "errors") {
-      this.updateVisibleErrors();
-    }
-    if (name === "isSingleInRow") {
-      this.updateElementCss(false);
-    }
-    if (name === "effectiveColSpan") {
-      this.colSpan = newValue;
     }
   }
   protected getSkeletonComponentNameCore(): string {
@@ -997,7 +986,7 @@ export class SurveyElement<E = any> extends SurveyElementCore implements ISurvey
   public get hasParent() {
     return (this.parent && !this.parent.isPage) || (this.parent === undefined);
   }
-  @property({ defaultValue: true }) isSingleInRow: boolean;
+  @property({ defaultValue: true }) isSingleInRow: boolean = true;
 
   private shouldAddRunnerStyles(): boolean {
     return !this.isDesignMode;

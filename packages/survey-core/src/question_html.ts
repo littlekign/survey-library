@@ -11,6 +11,14 @@ import { CssClassBuilder } from "./utils/cssClassBuilder";
  */
 export class QuestionHtmlModel extends QuestionNonValue {
   public ignoreHtmlProgressing: boolean;
+  constructor(name: string) {
+    super(name);
+    this.createLocalizableString("html").onGetTextCallback = (str: string): string => {
+      return !!this.survey && !this.ignoreHtmlProgressing
+        ? this.processHtml(str)
+        : str;
+    };
+  }
   public getType(): string {
     return "html";
   }
@@ -29,19 +37,13 @@ export class QuestionHtmlModel extends QuestionNonValue {
    * > If you get the markup from a third party, ensure that it does not contain malicious code.
    */
   public get html(): string {
-    return this.getLocStringText(this.locHtml) || "";
+    return this.getLocalizableStringText("html", "");
   }
   public set html(val: string) {
-    this.setLocStringText(this.locHtml, val);
+    this.setLocalizableStringText("html", val);
   }
   get locHtml(): LocalizableString {
-    return this.getOrCreateLocStr("html", false, false, (locStr: LocalizableString) => {
-      locStr.onGetTextCallback = (str: string): string => {
-        return !!this.survey && !this.ignoreHtmlProgressing
-          ? this.processHtml(str)
-          : str;
-      };
-    });
+    return this.getLocalizableString("html");
   }
   public get processedHtml() {
     return this.processHtml(this.html);

@@ -91,17 +91,19 @@ export class MatrixDropdownRowModel extends MatrixDropdownRowModelBase {
  */
 export class QuestionMatrixDropdownModel extends QuestionMatrixDropdownModelBase
   implements IMatrixDropdownData {
-  protected onPropertyValueChanged(name: string, oldValue: any, newValue: any): void {
-    super.onPropertyValueChanged(name, oldValue, newValue);
-    if (name === "rows" && !!this.generatedVisibleRows) {
+  constructor(name: string) {
+    super(name);
+    this.createLocalizableString("totalText", this, true);
+    this.registerPropertyChangedHandlers(["rows"], () => {
+      if (!this.generatedVisibleRows) return;
       this.clearGeneratedRows();
       this.resetRenderedTable();
       this.getVisibleRows();
       this.clearIncorrectValues();
-    }
-    if (name === "hideIfRowsEmpty") {
+    });
+    this.registerPropertyChangedHandlers(["hideIfRowsEmpty"], () => {
       this.updateVisibilityBasedOnRows();
-    }
+    });
   }
   public getType(): string {
     return "matrixdropdown";
@@ -112,13 +114,13 @@ export class QuestionMatrixDropdownModel extends QuestionMatrixDropdownModelBase
    * @see columns
    */
   public get totalText() {
-    return this.getLocStringText(this.locTotalText) || "";
+    return this.getLocalizableStringText("totalText", "");
   }
   public set totalText(val: string) {
-    this.setLocStringText(this.locTotalText, val);
+    this.setLocalizableStringText("totalText", val);
   }
   public get locTotalText(): LocalizableString {
-    return this.getOrCreateLocStr("totalText", true);
+    return this.getLocalizableString("totalText");
   }
   public getFooterText(): LocalizableString {
     return this.locTotalText;

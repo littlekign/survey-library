@@ -448,16 +448,10 @@ export class QuestionMultipleTextModel extends Question
         this.survey.multipleTextItemAdded(this, item);
       }
     });
-  }
-  protected onPropertyValueChanged(name: string, oldValue: any, newValue: any): void {
-    super.onPropertyValueChanged(name, oldValue, newValue);
-    const calcRowsProps = ["items", "colCount", "itemErrorLocation"];
-    if (calcRowsProps.indexOf(name) > -1) {
+    this.registerPropertyChangedHandlers(["items", "colCount", "itemErrorLocation"], () => {
       this.calcVisibleRows();
-    }
-    if (name === "inputSize") {
-      this.resetItemsSize();
-    }
+    });
+    this.registerPropertyChangedHandlers(["inputSize"], () => { this.resetItemsSize(); });
   }
   public getType(): string {
     return "multipletext";

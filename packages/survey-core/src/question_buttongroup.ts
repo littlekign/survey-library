@@ -1,10 +1,11 @@
 import { Serializer, property } from "./jsonobject";
+import { QuestionFactory } from "./questionfactory";
 import { ItemValue } from "./itemvalue";
 import { ChoiceItem, QuestionCheckboxBase } from "./question_baseselect";
 import { LocalizableString } from "./localizablestring";
 import { CssClassBuilder } from "./utils/cssClassBuilder";
 import { DropdownListModel } from "./dropdownListModel";
-import { updateListCssValues } from "./utils/utils";
+import { classesToSelector, updateListCssValues } from "./utils/utils";
 
 export class ButtonGroupItemValue extends ChoiceItem {
   protected getBaseType(): string {
@@ -30,17 +31,22 @@ export class ButtonGroupItemValue extends ChoiceItem {
  * A Model for a button group question.
  */
 export class QuestionButtonGroupModel extends QuestionCheckboxBase {
-  protected onPropertyValueChanged(name: string, oldValue: any, newValue: any): void {
-    super.onPropertyValueChanged(name, oldValue, newValue);
-    const resetReadOnlyTextProps = ["value", "renderAs", "placeholder", "choices", "visibleChoices"];
-    if (resetReadOnlyTextProps.indexOf(name) > -1) {
-      this.resetReadOnlyText();
-    }
+  constructor(name: string) {
+    super(name);
+    this.createLocString({ name: "buttongroupOptionsCaption", hasTranslation: true });
+    this.createLocalizableString("readOnlyText", this, true);
+    this.registerPropertyChangedHandlers(["value", "renderAs", "placeholder", "choices", "visibleChoices"], () => {
+      this.updateReadOnlyText();
+    });
+    this.updateReadOnlyText();
   }
   public locStrsChanged(): void {
     super.locStrsChanged();
-    this.resetReadOnlyText();
+    this.updateReadOnlyText();
     this.dropdownListModelValue?.locStrsChanged();
+  }
+  private updateReadOnlyText(): void {
+    this.readOnlyText = this.displayValue || this.placeholder;
   }
   public getType(): string {
     return "buttongroup";
@@ -71,13 +77,13 @@ export class QuestionButtonGroupModel extends QuestionCheckboxBase {
     return this.inputId + "_" + index;
   }
   public get placeholder(): string {
-    return this.getLocStringText(this.locPlaceholder);
+    return this.getLocalizableStringText("buttongroupOptionsCaption");
   }
   public set placeholder(val: string) {
-    this.setLocStringText(this.locPlaceholder, val);
+    this.setLocalizableStringText("buttongroupOptionsCaption", val);
   }
   get locPlaceholder(): LocalizableString {
-    return this.getOrCreateLocStr("placeholder", false, "buttongroupOptionsCaption");
+    return this.getLocalizableString("buttongroupOptionsCaption");
   }
   _allowClear = true;
   get allowClear(): boolean {
@@ -93,17 +99,13 @@ export class QuestionButtonGroupModel extends QuestionCheckboxBase {
     return item.value == this.value;
   }
   public get readOnlyText(): string {
-    return this.locReadOnlyText.calculatedText;
+    return this.getLocalizableStringText("readOnlyText");
   }
-  public get locReadOnlyText(): LocalizableString {
-    return this.getOrCreateLocStr("readOnlyText", true, false, (locStr: LocalizableString) => {
-      locStr.onGetTextCallback = (): string => {
-        return this.displayValue || this.placeholder;
-      };
-    });
+  public set readOnlyText(val: string) {
+    this.setLocalizableStringText("readOnlyText", val);
   }
-  private resetReadOnlyText(): void {
-    this.resetPropertyValue("readOnlyText");
+  get locReadOnlyText(): LocalizableString {
+    return this.getLocalizableString("readOnlyText");
   }
   @property({ defaultValue: false }) inputHasValue: boolean;
 

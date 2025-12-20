@@ -257,10 +257,6 @@ export class ItemValue extends BaseAction implements ILocalizableOwner, IShortcu
     return !Helpers.isValueEmpty(val) ? val.toString() : null;
   }
   public get locText(): LocalizableString {
-    return this.getLocText();
-  }
-  protected getLocText(): LocalizableString {
-
     if (!this.locTextValue) {
       this.locTextValue = this.createLocText();
     }

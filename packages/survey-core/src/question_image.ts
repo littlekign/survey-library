@@ -18,11 +18,14 @@ const youtubeEmbed = "embed";
 export class QuestionImageModel extends QuestionNonValue {
   @property({ defaultValue: false }) contentNotLoaded: boolean;
 
-  protected onPropertyValueChanged(name: string, oldValue: any, newValue: any): void {
-    super.onPropertyValueChanged(name, oldValue, newValue);
-    if (name === "contentMode" || name === "imageLink") {
-      this.calculateRenderedMode();
-    }
+  constructor(name: string) {
+    super(name);
+    const locImageLink = this.createLocalizableString("imageLink");
+    locImageLink.onGetTextCallback = (text: string): string => {
+      return getCorrectImageLink(text, this.contentMode == "youtube");
+    };
+    this.createLocalizableString("altText");
+    this.registerPropertyChangedHandlers(["contentMode", "imageLink"], () => this.calculateRenderedMode());
   }
   public getType(): string {
     return "image";
@@ -41,17 +44,13 @@ export class QuestionImageModel extends QuestionNonValue {
    * @see contentMode
    */
   public get imageLink(): string {
-    return this.getLocStringText(this.locImageLink);
+    return this.getLocalizableStringText("imageLink");
   }
   public set imageLink(val: string) {
-    this.setLocStringText(this.locImageLink, val);
+    this.setLocalizableStringText("imageLink", val);
   }
   get locImageLink(): LocalizableString {
-    return this.getOrCreateLocStr("imageLink", false, false, (locStr: LocalizableString) => {
-      locStr.onGetTextCallback = (text: string): string => {
-        return getCorrectImageLink(text, this.contentMode == "youtube");
-      };
-    });
+    return this.getLocalizableString("imageLink");
   }
   /**
    * Specifies a value for the `alt` attribute of the underlying `<img>` element.
@@ -59,13 +58,13 @@ export class QuestionImageModel extends QuestionNonValue {
    * [View Demo](https://surveyjs.io/form-library/examples/add-image-and-video-to-survey/ (linkStyle))
    */
   public get altText(): string {
-    return this.getLocStringText(this.locAltText);
+    return this.getLocalizableStringText("altText");
   }
   public set altText(val: string) {
-    this.setLocStringText(this.locAltText, val);
+    this.setLocalizableStringText("altText", val);
   }
   get locAltText(): LocalizableString {
-    return this.getOrCreateLocStr("altText");
+    return this.getLocalizableString("altText");
   }
   /**
    * Specifies the height of a container for the image or video. Accepts positive numbers and CSS values.

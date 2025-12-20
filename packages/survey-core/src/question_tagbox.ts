@@ -24,24 +24,26 @@ export class QuestionTagboxModel extends QuestionCheckboxModel {
 
   constructor(name: string) {
     super(name);
+    this.createLocString({ name: "placeholder", hasTranslation: true });
+    this.createLocalizableString("readOnlyText", this, true);
     this.deselectAllItemText = this.createLocalizableString("deselectAllText", this.selectAllItem, true, "deselectAllItemText");
-  }
-  protected onPropertyValueChanged(name: string, oldValue: any, newValue: any): void {
-    super.onPropertyValueChanged(name, oldValue, newValue);
-    const resetReadOnlyTextProps = ["value", "renderAs", "showOtherItem", "otherText", "placeholder", "choices", "visibleChoices"];
-    if (resetReadOnlyTextProps.indexOf(name) > -1) {
-      this.resetReadOnlyText();
-    }
+    this.registerPropertyChangedHandlers(["value", "renderAs", "showOtherItem", "otherText", "placeholder", "choices", "visibleChoices"], () => {
+      this.updateReadOnlyText();
+    });
+    this.updateReadOnlyText();
   }
   supportElementsInChoice(): boolean { return false; }
   public locStrsChanged(): void {
     super.locStrsChanged();
-    this.resetReadOnlyText();
+    this.updateReadOnlyText();
     this.dropdownListModelValue?.locStrsChanged();
+  }
+  private updateReadOnlyText(): void {
+    this.readOnlyText = this.displayValue || this.placeholder;
   }
   protected onSelectedItemValuesUpdated(): void {
     super.onSelectedItemValuesUpdated();
-    this.resetReadOnlyText();
+    this.updateReadOnlyText();
   }
   protected getDefaultItemComponent(): string {
     return "";
@@ -136,30 +138,28 @@ export class QuestionTagboxModel extends QuestionCheckboxModel {
    * A text displayed in the input field when it doesn't have a value.
    */
   public get placeholder(): string {
-    return this.getLocStringText(this.locPlaceholder);
+    return this.getLocalizableStringText("placeholder");
   }
   public set placeholder(val: string) {
-    this.setLocStringText(this.locPlaceholder, val);
+    this.setLocalizableStringText("placeholder", val);
     if (!!this.dropdownListModelValue) {
       this.dropdownListModel.setInputPlaceholder(val);
     }
   }
   get locPlaceholder(): LocalizableString {
-    return this.getOrCreateLocStr("placeholder", false, true);
+    return this.getLocalizableString("placeholder");
   }
+
   public get readOnlyText(): string {
-    return this.locReadOnlyText.calculatedText;
+    return this.getLocalizableStringText("readOnlyText");
   }
-  public get locReadOnlyText(): LocalizableString {
-    return this.getOrCreateLocStr("readOnlyText", true, false, (locStr: LocalizableString) => {
-      locStr.onGetTextCallback = (): string => {
-        return this.displayValue || this.placeholder;
-      };
-    });
+  public set readOnlyText(val: string) {
+    this.setLocalizableStringText("readOnlyText", val);
   }
-  private resetReadOnlyText(): void {
-    this.resetPropertyValue("readOnlyText");
+  get locReadOnlyText(): LocalizableString {
+    return this.getLocalizableString("readOnlyText");
   }
+
   public getType(): string {
     return "tagbox";
   }

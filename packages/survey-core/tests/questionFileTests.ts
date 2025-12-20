@@ -910,18 +910,16 @@ QUnit.test("Question File responsive", (assert) => {
   q1.loadFiles(files2);
 
   assert.equal(q1.fileNavigatorVisible, true);
-  const fileIndexAction = q1.fileNavigator.getActionById("fileIndex");
-  assert.equal(fileIndexAction.title, "2 of 2");
-  const nextFileAction = q1.fileNavigator.getActionById("nextPage");
-  nextFileAction.action();
-  assert.equal(fileIndexAction.title, "1 of 2");
-  nextFileAction.action();
-  assert.equal(fileIndexAction.title, "2 of 2");
-  const prevFileAction = q1.fileNavigator.getActionById("prevPage");
-  prevFileAction.action();
-  assert.equal(fileIndexAction.title, "1 of 2");
-  prevFileAction.action();
-  assert.equal(fileIndexAction.title, "2 of 2");
+
+  assert.equal(q1["fileIndexAction"].title, "2 of 2");
+  q1["nextFileAction"].action();
+  assert.equal(q1["fileIndexAction"].title, "1 of 2");
+  q1["nextFileAction"].action();
+  assert.equal(q1["fileIndexAction"].title, "2 of 2");
+  q1["prevFileAction"].action();
+  assert.equal(q1["fileIndexAction"].title, "1 of 2");
+  q1["prevFileAction"].action();
+  assert.equal(q1["fileIndexAction"].title, "2 of 2");
 
   assert.equal(q1.pages.length, 2);
   assert.equal(q1.pages[0].items.length, 1);
@@ -930,7 +928,7 @@ QUnit.test("Question File responsive", (assert) => {
   assert.equal(q1.pages[0].css, "sd-file__page");
   assert.equal(q1.pages[1].css, "sd-file__page");
 
-  nextFileAction.action();
+  q1["nextFileAction"].action();
 
   assert.equal(q1.pages[0].css, "sd-file__page");
   assert.equal(q1.pages[1].css, "sd-file__page");
@@ -1015,15 +1013,13 @@ QUnit.test("preview item index on last file removed", (assert) => {
     type: "image/png"
   }];
   assert.equal(q.indexToShow, 0, "Start from 0");
-  const fileIndexAction = q.fileNavigator.getActionById("fileIndex");
-  assert.equal(fileIndexAction.title, "1 of 3", "Initial title");
-  const prevFileAction = q.fileNavigator.getActionById("prevPage");
-  prevFileAction.action();
+  assert.equal(q["fileIndexAction"].title, "1 of 3", "Initial title");
+  q["prevFileAction"].action();
   assert.equal(q.indexToShow, 2, "We're on 3rd image");
-  assert.equal(fileIndexAction.title, "3 of 3", "We're on the last item");
+  assert.equal(q["fileIndexAction"].title, "3 of 3", "We're on the last item");
   q.doRemoveFile(q.value[2], { stopPropagation: () => {} });
   assert.equal(q.indexToShow, 1, "We're on 2nd image");
-  assert.equal(fileIndexAction.title, "2 of 2", "We're on the last item again");
+  assert.equal(q["fileIndexAction"].title, "2 of 2", "We're on the last item again");
 });
 
 QUnit.test(
@@ -1316,8 +1312,7 @@ QUnit.test("File Question on Smaller Screens: navigation bar doesn't appear when
   question.isMobile = true;
   question.pageSize = 1;
   assert.equal(question.indexToShow, 0);
-  const fileIndexAction = question.fileNavigator.getActionById("fileIndex");
-  assert.equal(fileIndexAction.title, "1 of 0");
+  assert.equal(question["fileIndexAction"].title, "1 of 0");
   assert.equal(question.containsMultiplyFiles, false);
   assert.equal(question.fileNavigatorVisible, false);
 
@@ -1338,7 +1333,7 @@ QUnit.test("File Question on Smaller Screens: navigation bar doesn't appear when
   setTimeout(() => {
     assert.deepEqual(question.previewValue.map(val => val.name), ["f1", "f2", "f3"]);
     assert.equal(question.indexToShow, 0);
-    assert.equal(fileIndexAction.title, "1 of 3");
+    assert.equal(question["fileIndexAction"].title, "1 of 3");
     assert.equal(question.containsMultiplyFiles, true);
     assert.equal(question.fileNavigatorVisible, true);
     done();
@@ -1362,11 +1357,8 @@ QUnit.test("Check file question navigator with different items count visible", (
   const question = <QuestionFileModel>survey.getAllQuestions()[0];
   survey.css = defaultCss;
   question.pageSize = 3;
-  const fileIndexAction = question.fileNavigator.getActionById("fileIndex");
-  const nextFileAction = question.fileNavigator.getActionById("nextPage");
-  const prevFileAction = question.fileNavigator.getActionById("prevPage");
   assert.equal(question.indexToShow, 0);
-  assert.equal(fileIndexAction.title, "1 of 0");
+  assert.equal(question["fileIndexAction"].title, "1 of 0");
   assert.equal(question.containsMultiplyFiles, false);
   assert.equal(question.fileNavigatorVisible, false);
   survey.onUploadFiles.add((survey, options) => {
@@ -1386,28 +1378,28 @@ QUnit.test("Check file question navigator with different items count visible", (
   question.loadFiles([{ name: "f4", type: "t4" } as any]);
   assert.equal(question.fileNavigatorVisible, true);
   assert.equal(question.indexToShow, 1);
-  assert.equal(fileIndexAction.title, "2 of 2");
+  assert.equal(question["fileIndexAction"].title, "2 of 2");
   assert.equal(question.pages.length, 2);
   assert.equal(question.pages[0].items.length, 3);
   assert.equal(question.pages[1].items.length, 1);
-  prevFileAction.action();
+  question["prevFileAction"].action();
   assert.equal(question.indexToShow, 0);
-  assert.equal(fileIndexAction.title, "1 of 2");
+  assert.equal(question["fileIndexAction"].title, "1 of 2");
   assert.equal(question.pages[0].css, "sd-file__page");
   assert.equal(question.pages[1].css, "sd-file__page");
-  nextFileAction.action();
+  question["nextFileAction"].action();
   assert.equal(question.indexToShow, 1);
-  assert.equal(fileIndexAction.title, "2 of 2");
+  assert.equal(question["fileIndexAction"].title, "2 of 2");
   assert.equal(question.pages[0].css, "sd-file__page");
   assert.equal(question.pages[1].css, "sd-file__page");
-  nextFileAction.action();
+  question["nextFileAction"].action();
   assert.equal(question.indexToShow, 0);
-  assert.equal(fileIndexAction.title, "1 of 2");
+  assert.equal(question["fileIndexAction"].title, "1 of 2");
   assert.equal(question.pages[0].css, "sd-file__page");
   assert.equal(question.pages[1].css, "sd-file__page");
-  prevFileAction.action();
+  question["prevFileAction"].action();
   assert.equal(question.indexToShow, 1);
-  assert.equal(fileIndexAction.title, "2 of 2");
+  assert.equal(question["fileIndexAction"].title, "2 of 2");
 
   assert.equal(question.pages[0].css, "sd-file__page");
   assert.equal(question.pages[1].css, "sd-file__page");
@@ -1415,33 +1407,33 @@ QUnit.test("Check file question navigator with different items count visible", (
   //check index position on load files
   question.loadFiles([{ name: "f5", type: "t5" } as any, { name: "f6", type: "t6" } as any]);
   assert.equal(question.indexToShow, 1);
-  assert.equal(fileIndexAction.title, "2 of 2");
+  assert.equal(question["fileIndexAction"].title, "2 of 2");
   question.loadFiles([{ name: "f7", type: "t7" } as any, { name: "f8", type: "t8" } as any]);
   assert.equal(question.indexToShow, 2);
-  assert.equal(fileIndexAction.title, "3 of 3");
+  assert.equal(question["fileIndexAction"].title, "3 of 3");
   //check index position on deleting files
   question.removeFile(question.previewValue[7].name);
   assert.equal(question.indexToShow, 2);
-  assert.equal(fileIndexAction.title, "3 of 3");
+  assert.equal(question["fileIndexAction"].title, "3 of 3");
   question.removeFile(question.previewValue[6].name);
   assert.equal(question.indexToShow, 1);
-  assert.equal(fileIndexAction.title, "2 of 2");
+  assert.equal(question["fileIndexAction"].title, "2 of 2");
   question.removeFile(question.previewValue[5].name);
   assert.equal(question.indexToShow, 1);
-  assert.equal(fileIndexAction.title, "2 of 2");
+  assert.equal(question["fileIndexAction"].title, "2 of 2");
   question.removeFile(question.previewValue[4].name);
   assert.equal(question.indexToShow, 1);
-  assert.equal(fileIndexAction.title, "2 of 2");
+  assert.equal(question["fileIndexAction"].title, "2 of 2");
   //check index position change on itemsCountToShow change
   question.pageSize = 2;
   assert.equal(question.indexToShow, 1);
-  assert.equal(fileIndexAction.title, "2 of 2");
+  assert.equal(question["fileIndexAction"].title, "2 of 2");
   assert.equal(question.pages.length, 2);
   assert.equal(question.pages[0].items.length, 2);
   assert.equal(question.pages[1].items.length, 2);
   question.pageSize = 1;
   assert.equal(question.indexToShow, 1);
-  assert.equal(fileIndexAction.title, "2 of 4");
+  assert.equal(question["fileIndexAction"].title, "2 of 4");
   assert.equal(question.pages.length, 4);
   assert.equal(question.pages[0].items.length, 1);
   assert.equal(question.pages[1].items.length, 1);
@@ -2007,7 +1999,7 @@ QUnit.test("QuestionFile process errors with partially loaded files",
   }
 );
 
-QUnit.test("Acton takePhoto should be localized", function (assert) {
+QUnit.test("Acton takePhoto should be serialiazed", function (assert) {
   const survey = new SurveyModel({
     elements: [
       { type: "file", name: "q1", maxSize: 3 },
@@ -2015,14 +2007,12 @@ QUnit.test("Acton takePhoto should be localized", function (assert) {
   });
   const question = <QuestionFileModel>survey.getAllQuestions()[0];
   assert.equal(question.takePictureAction.title, "Take Photo", "en");
-  const startCameraAction = question.actionsContainer.getActionById("sv-file-start-camera");
-  const cleanAction = question.actionsContainer.getActionById("sv-file-clean");
-  assert.equal(startCameraAction.title, "Take Photo", "en");
-  assert.equal(cleanAction.title, "Clear", "en");
+  assert.equal(question.startCameraAction.title, "Take Photo", "en");
+  assert.equal(question.cleanAction.title, "Clear", "en");
   survey.locale = "de";
   assert.equal(question.takePictureAction.title, "Foto machen", "de");
-  assert.equal(startCameraAction.title, "Foto machen", "de");
-  assert.equal(cleanAction.title, "Auswahl entfernen", "de");
+  assert.equal(question.startCameraAction.title, "Foto machen", "de");
+  assert.equal(question.cleanAction.title, "Auswahl entfernen", "de");
 });
 
 QUnit.test("Choose file action should have disabled class", function (assert) {
@@ -2163,27 +2153,26 @@ QUnit.test("Check renderedPages property", function (assert) {
   assert.equal(q1.renderedPages.length, 1);
   assert.equal(q1.renderedPages[0].items.length, 1);
   assert.equal(q1.renderedPages[0].items[0].name, "item1");
-  const prevFileAction = q1.fileNavigator.getActionById("prevPage");
-  prevFileAction.action();
+
+  q1["prevFileAction"].action();
   assert.equal(q1.navigationDirection, "left");
   assert.equal(q1.renderedPages.length, 1);
   assert.equal(q1.renderedPages[0].items.length, 1);
   assert.equal(q1.renderedPages[0].items[0].name, "item3");
 
-  const nextFileAction = q1.fileNavigator.getActionById("nextPage");
-  nextFileAction.action();
+  q1["nextFileAction"].action();
   assert.equal(q1.navigationDirection, "right");
   assert.equal(q1.renderedPages.length, 1);
   assert.equal(q1.renderedPages[0].items.length, 1);
   assert.equal(q1.renderedPages[0].items[0].name, "item1");
 
-  nextFileAction.action();
+  q1["nextFileAction"].action();
   assert.equal(q1.navigationDirection, "right");
   assert.equal(q1.renderedPages.length, 1);
   assert.equal(q1.renderedPages[0].items.length, 1);
   assert.equal(q1.renderedPages[0].items[0].name, "item2");
 
-  prevFileAction.action();
+  q1["prevFileAction"].action();
   assert.equal(q1.navigationDirection, "left");
   assert.equal(q1.renderedPages.length, 1);
   assert.equal(q1.renderedPages[0].items.length, 1);
@@ -2202,7 +2191,7 @@ QUnit.test("Check renderedPages property", function (assert) {
   assert.equal(q1.renderedPages[0].items.length, 1);
   assert.equal(q1.renderedPages[0].items[0].name, "item2");
 
-  nextFileAction.action();
+  q1["nextFileAction"].action();
   q1.removeFile("item3");
   assert.equal(q1.navigationDirection, "left-delete");
   assert.equal(q1.pages.length, 1);
@@ -2258,27 +2247,26 @@ QUnit.test("Check renderedPages property", function (assert) {
   assert.equal(q1.renderedPages.length, 1);
   assert.equal(q1.renderedPages[0].items.length, 1);
   assert.equal(q1.renderedPages[0].items[0].name, "item1");
-  const prevFileAction = q1.fileNavigator.getActionById("prevPage");
-  prevFileAction.action();
+
+  q1["prevFileAction"].action();
   assert.equal(q1.navigationDirection, "left");
   assert.equal(q1.renderedPages.length, 1);
   assert.equal(q1.renderedPages[0].items.length, 1);
   assert.equal(q1.renderedPages[0].items[0].name, "item3");
 
-  const nextFileAction = q1.fileNavigator.getActionById("nextPage");
-  nextFileAction.action();
+  q1["nextFileAction"].action();
   assert.equal(q1.navigationDirection, "right");
   assert.equal(q1.renderedPages.length, 1);
   assert.equal(q1.renderedPages[0].items.length, 1);
   assert.equal(q1.renderedPages[0].items[0].name, "item1");
 
-  nextFileAction.action();
+  q1["nextFileAction"].action();
   assert.equal(q1.navigationDirection, "right");
   assert.equal(q1.renderedPages.length, 1);
   assert.equal(q1.renderedPages[0].items.length, 1);
   assert.equal(q1.renderedPages[0].items[0].name, "item2");
 
-  prevFileAction.action();
+  q1["prevFileAction"].action();
   assert.equal(q1.navigationDirection, "left");
   assert.equal(q1.renderedPages.length, 1);
   assert.equal(q1.renderedPages[0].items.length, 1);
@@ -2297,7 +2285,7 @@ QUnit.test("Check renderedPages property", function (assert) {
   assert.equal(q1.renderedPages[0].items.length, 1);
   assert.equal(q1.renderedPages[0].items[0].name, "item2");
 
-  nextFileAction.action();
+  q1["nextFileAction"].action();
   q1.removeFile("item3");
   assert.equal(q1.navigationDirection, "left-delete");
   assert.equal(q1.pages.length, 1);

@@ -49,6 +49,10 @@ export class ValidatorResult {
  */
 export class SurveyValidator extends Base {
   public errorOwner: ISurveyErrorOwner;
+  constructor() {
+    super();
+    this.createLocalizableString("text", this, true);
+  }
   public get id(): string { return "svd" + this.uniqueId; }
   public get isValidator(): boolean { return true; }
   public getSurvey(live: boolean = false): ISurvey {
@@ -75,13 +79,13 @@ export class SurveyValidator extends Base {
    * An error message to display when a value fails validation.
    */
   public get text(): string {
-    return this.getLocStringText(this.locText);
+    return this.getLocalizableStringText("text");
   }
   public set text(value: string) {
-    this.setLocStringText(this.locText, value);
+    this.setLocalizableStringText("text", value);
   }
   get locText(): LocalizableString {
-    return this.getOrCreateLocStr("text", true);
+    return this.getLocalizableString("text");
   }
   protected getErrorText(name: string): string {
     if (this.text) return this.text;

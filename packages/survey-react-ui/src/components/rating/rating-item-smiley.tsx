@@ -9,10 +9,9 @@ import { IRatingItemProps, RatingItemBase } from "./rating-item";
 export class RatingItemSmiley extends RatingItemBase {
   render(): React.JSX.Element | null {
     return (
-      <label
-        style={this.item.style}
-        className={this.item.className}
-        onMouseDown={this.handleOnMouseDown}
+      <label onMouseDown={this.handleOnMouseDown}
+        style={this.question.getItemStyle(this.item.itemValue, this.item.highlight) as any}
+        className={this.question.getItemClass(this.item.itemValue)}
         onMouseOver={e => this.question.onItemMouseIn(this.item)}
         onMouseOut={e => this.question.onItemMouseOut(this.item)}
         title={this.item.text}
@@ -32,7 +31,7 @@ export class RatingItemSmiley extends RatingItemBase {
         />
         <SvgIcon
           size={"auto"}
-          iconName={this.question.getItemSmileyIconName(this.item)}
+          iconName={this.question.getItemSmileyIconName(this.item.itemValue)}
         ></SvgIcon>
       </label>
     );

@@ -14,11 +14,12 @@ export class FlowPanelModel extends PanelModel {
   public contentChangedCallback: () => void;
   public onGetHtmlForQuestion: (question: Question) => string;
   public onCustomHtmlProducing: () => string;
-  protected onPropertyValueChanged(name: string, oldValue: any, newValue: any): void {
-    super.onPropertyValueChanged(name, oldValue, newValue);
-    if (name === "content") {
+  constructor(name: string = "") {
+    super(name);
+    this.createLocString({ name: "content", supportsMarkdown: true });
+    this.registerPropertyChangedHandlers(["content"], () => {
       this.onContentChanged();
-    }
+    });
   }
   public getType(): string {
     return "flowpanel";
@@ -31,13 +32,13 @@ export class FlowPanelModel extends PanelModel {
     this.onContentChanged();
   }
   public get content(): string {
-    return this.getLocStringText(this.locContent);
+    return this.getLocalizableStringText("content");
   }
   public set content(val: string) {
-    this.setLocStringText(this.locContent, val);
+    this.setLocalizableStringText("content", val);
   }
   public get locContent(): LocalizableString {
-    return this.getOrCreateLocStr("content");
+    return this.getLocalizableString("content");
   }
   public get html(): string {
     return this.getPropertyValue("html", "");

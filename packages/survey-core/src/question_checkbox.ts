@@ -42,15 +42,12 @@ export class QuestionCheckboxModel extends QuestionCheckboxBase {
   constructor(name: string) {
     super(name);
     this.selectAllItemValue = this.createSelectAllItem();
-  }
-  protected onPropertyValueChanged(name: string, oldValue: any, newValue: any): void {
-    super.onPropertyValueChanged(name, oldValue, newValue);
-    if (["showSelectAllItem", "selectAllText"].indexOf(name) > -1) {
+    this.registerPropertyChangedHandlers(["showSelectAllItem", "selectAllText"], () => {
       this.onVisibleChoicesChanged();
-    }
-    if (name === "choices") {
+    });
+    this.registerPropertyChangedHandlers(["choices"], () => {
       this.onItemHasCommentChanged();
-    }
+    });
   }
   supportElementsInChoice(): boolean { return true; }
   protected getDefaultItemComponent(): string {

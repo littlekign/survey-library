@@ -21,6 +21,10 @@ import { settings } from "./settings";
 export class PageModel extends PanelModel implements IPage {
   public isPageContainer: boolean;
 
+  constructor(name: string = "") {
+    super(name);
+    this.createLocalizableString("navigationDescription", this, true);
+  }
   public getType(): string {
     return "page";
   }
@@ -105,19 +109,19 @@ export class PageModel extends PanelModel implements IPage {
    * > If navigation titles are unspecified, the navigation buttons display page [titles](https://surveyjs.io/form-library/documentation/api-reference/page-model#title) or [names](https://surveyjs.io/form-library/documentation/pagemodel#name).
    */
   public get navigationTitle(): string {
-    return this.getLocStringText(this.locNavigationTitle);
+    return this.getLocalizableStringText("navigationTitle");
   }
   public set navigationTitle(val: string) {
-    this.setLocStringText(this.locNavigationTitle, val);
+    this.setLocalizableStringText("navigationTitle", val);
   }
   public get navigationDescription(): string {
-    return this.getLocStringText(this.locNavigationDescription);
+    return this.getLocalizableStringText("navigationDescription");
   }
   public set navigationDescription(val: string) {
-    this.setLocStringText(this.locNavigationDescription, val);
+    this.setLocalizableStringText("navigationDescription", val);
   }
   public get locNavigationDescription(): LocalizableString {
-    return this.getOrCreateLocStr("navigationDescription");
+    return this.getLocalizableString("navigationDescription");
   }
   public navigationLocStrChanged(): void {
     if (this.locNavigationTitle.isEmpty) {

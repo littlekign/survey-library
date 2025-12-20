@@ -1,4 +1,4 @@
-import { Base } from "./base";
+import { Base, ArrayChanges } from "./base";
 import { HorizontalAlignment, VerticalAlignment } from "./base-interfaces";
 import { DomDocumentHelper } from "./global_variables_utils";
 import { Serializer, property } from "./jsonobject";
@@ -248,8 +248,8 @@ export class Cover extends Base {
     };
   }
 
-  protected onPropertyValueChanged(name: string, oldValue: any, newValue: any): void {
-    super.onPropertyValueChanged(name, oldValue, newValue);
+  protected propertyValueChanged(name: string, oldValue: any, newValue: any, arrayChanges?: ArrayChanges, target?: Base): void {
+    super.propertyValueChanged(name, oldValue, newValue);
     if (name === "height" || name === "backgroundColor" || name === "backgroundImage" || name === "overlapEnabled") {
       this.updateHeaderClasses();
     }

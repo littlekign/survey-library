@@ -55,8 +55,12 @@
       :tabindex="question.isDisabledAttr ? undefined : 0"
       :class="question.getControlClass()"
     >
-      <div v-if="question.readOnlyText" :class="question.cssClasses.controlValue">
-        <SvComponent :is="'survey-string'" :locString="question.locReadOnlyText" />
+      <div :class="question.cssClasses.controlValue">
+        <SvComponent
+          :is="'survey-string'"
+          v-if="question.locReadOnlyText"
+          :locString="question.locReadOnlyText"
+        />
       </div>
       <SvComponent :is="'sv-action-bar'" :model="model.editorButtons" />
     </div>

@@ -136,28 +136,11 @@ export class MatrixDropdownColumn extends Base
   constructor(name: string, title?: string, colOwner?: IMatrixColumnOwner) {
     super();
     this.colOwnerValue = colOwner;
+    this.createLocalizableString("totalFormat");
+    this.createLocalizableString("cellHint");
+    this.registerPropertyChangedHandlers(["showInMultipleColumns"], () => { this.doShowInMultipleColumnsChanged(); });
+    this.registerPropertyChangedHandlers(["visible"], () => { this.doColumnVisibilityChanged(); });
     this.updateTemplateQuestion(undefined, name, title);
-  }
-  protected onPropertyValueChanged(name: string, oldValue: any, newValue: any): void {
-    super.onPropertyValueChanged(name, oldValue, newValue);
-    if (name === "showInMultipleColumns") {
-      this.doShowInMultipleColumnsChanged();
-    }
-    if (name === "visible") {
-      this.doColumnVisibilityChanged();
-    }
-    if (name === "isRequired") {
-      this.updateIsRenderedRequired(newValue);
-    }
-    if (!this.colOwner || this.isLoadingFromJson) return;
-    if (this.isShowInMultipleColumns) {
-      if (name === "choicesOrder") return;
-      if (["visibleChoices", "choices"].indexOf(name) > -1) {
-        this.colOwner.onShowInMultipleColumnsChanged(this);
-      }
-    }
-    if (!Serializer.hasOriginalProperty(this, name)) return;
-    this.colOwner.onColumnPropertyChanged(this, name, newValue);
   }
   public getOriginalObj(): Base {
     return this.templateQuestion;
@@ -588,22 +571,22 @@ export class MatrixDropdownColumn extends Base
    * @see totalDisplayStyle
    */
   public get totalFormat(): string {
-    return this.getLocStringText(this.locTotalFormat) || "";
+    return this.getLocalizableStringText("totalFormat", "");
   }
   public set totalFormat(val: string) {
-    this.setLocStringText(this.locTotalFormat, val);
+    this.setLocalizableStringText("totalFormat", val);
   }
   get locTotalFormat(): LocalizableString {
-    return this.getOrCreateLocStr("totalFormat");
+    return this.getLocalizableString("totalFormat");
   }
   public get cellHint(): string {
-    return this.getLocStringText(this.locCellHint) || "";
+    return this.getLocalizableStringText("cellHint", "");
   }
   public set cellHint(val: string) {
-    this.setLocStringText(this.locCellHint, val);
+    this.setLocalizableStringText("cellHint", val);
   }
   get locCellHint(): LocalizableString {
-    return this.getOrCreateLocStr("cellHint");
+    return this.getLocalizableString("cellHint");
   }
   public get renderAs(): string {
     return this.getPropertyValue("renderAs");
@@ -890,6 +873,21 @@ export class MatrixDropdownColumn extends Base
         this.propertyValueChanged("choices", choices, choices);
       };
     }
+  }
+  protected propertyValueChanged(name: string, oldValue: any, newValue: any, arrayChanges?: ArrayChanges, target?: Base): void {
+    super.propertyValueChanged(name, oldValue, newValue, arrayChanges, target);
+    if (name === "isRequired") {
+      this.updateIsRenderedRequired(newValue);
+    }
+    if (!this.colOwner || this.isLoadingFromJson) return;
+    if (this.isShowInMultipleColumns) {
+      if (name === "choicesOrder") return;
+      if (["visibleChoices", "choices"].indexOf(name) > -1) {
+        this.colOwner.onShowInMultipleColumnsChanged(this);
+      }
+    }
+    if (!Serializer.hasOriginalProperty(this, name)) return;
+    this.colOwner.onColumnPropertyChanged(this, name, newValue);
   }
   private doItemValuePropertyChanged(
     propertyName: string,
